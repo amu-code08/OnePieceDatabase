@@ -1,0 +1,49 @@
+{% extends 'layout.html' %}
+{% block body %}
+<div class="container">
+    <div class="notification is-primary">
+        <h1 class="title is-3">Sign Up</h1>
+    </div>
+
+    <!-- flashメッセージの表示 -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="notification is-danger is-light">
+            <!-- <button class="delete"></button> -->
+            <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+                </ul>
+        </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- サインアップフォーム -->
+    <form class="box" method="POST">
+        <div class="field">
+            <label class="label">User Name</label>
+            <div class="control">
+                <input class="input" type="text" name="username" placeholder="e.g. alex@example.com">
+            </div>
+        </div>
+  
+        <div class="field">
+            <label class="label">Password</label>
+            <div class="control">
+                <input class="input" type="password" name="password" placeholder="********">
+            </div>
+        </div>
+        <div class="field">
+            <label class="label">Confirm Password</label>
+            <div class="control">
+                <input class="input" type="password" name="confirm" placeholder="********">
+            </div>
+        </div>
+  
+        <button class="button is-primary">Sign Up</button>
+		<a class="button is-primary is-light" href="{{url_for('login')}}">Login</a>
+    </form>
+  </div>
+{% endblock %}
+  

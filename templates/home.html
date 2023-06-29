@@ -1,0 +1,81 @@
+{% extends "layout.html" %}
+
+{% block body %}
+<!-- flashメッセージを表示させる -->
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div id="announce" class="notification is-primary">
+        <button class="delete"></button>
+        <ul>
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+{% endwith %}
+
+    <section class="section">
+    <div class="container is-max-desktop">
+    <article class="message">
+        <div class="message-header">
+        <p>Data Modeling Sample Web App</p>
+        <!-- <button class="delete" aria-label="delete"></button> -->
+        </div>
+        <div class="message-body">
+            {% if session['user_id'] %}
+            Hello, {{username}}!
+            {% else %}
+            This is <strong>Data Modeling</strong> sample web application. Click Login to start.
+            {% endif %}
+        </div>
+    </article>
+    </div>
+    </section>
+    
+    <section class="section">
+        <div class="container">
+            <h1 class="title">
+                レポートの書き方について
+            </h1>
+            <div class="content">
+                レポートは以下の事項を含め、Webアプリ上のわかりやすい場所にHTMLで記述すること。
+            </div>
+
+            <p class="title is-5">
+                第3課題からの変更点
+            </p>
+            <div class="content">
+                第3課題からスキーマやビューなどに変更を加えた場合、それがわかるように記述。
+            </div>
+
+            <p class="title is-5">
+                Webアプリの概要
+            </p>
+            <div class="content">
+                設計したWebアプリに関する簡単な説明。
+            </div>
+
+            <p class="title is-5">
+                Webアプリのエンドポイント、使用したSQL文、及び実装上の工夫
+            </p>
+            <div class="content">
+                Webアプリの各エンドポイントに対し、その画面が何をするものなのか説明し、関連するSQLクエリを記述する。
+                必要に応じて、MVTモデルに則った、Webアプリ、データベース、テンプレートの各画面での役割について説明する。
+                また、Webアプリやデータベース接続のセキュリティ向上のための工夫、フォームバリデーションやユーザインターフェイスに関する工夫があれば併せて報告する。
+            </div>
+
+            <p class="title is-5">
+                考察・感想
+            </p>
+            <div class="content">
+                この授業及び課題に関する考察及び感想を記入する。
+            </div>
+        </div>
+    </section>
+
+<!-- notificationを自動的に閉じる -->
+<script>
+    $("#announce").delay(2000).slideUp();
+</script>
+{% endblock %}

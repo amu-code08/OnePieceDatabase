@@ -1,0 +1,4 @@
+__pycache__/
+.htaccess
+.DS_Store
+database.db

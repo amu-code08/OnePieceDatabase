@@ -1,0 +1,101 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+<!-- flashメッセージを表示させる。flashメッセージにはカテゴリを設定できる。 -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+        {% if category == "error" %}
+            <div class="notification is-danger is-light">
+        {% else %}
+            <div class="notification is-success">
+        {% endif %}
+                <button class="delete"></button>
+                {{ message }}
+            </div>
+    {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<!-- 検索フォーム -->
+<section class="section">
+    <div class="container">
+        <label class="label">Employee search</label>
+        <form action="{{url_for('employee')}}" , method="POST">
+            <div class="level">
+                <!-- Left side -->
+                <div class="level-left">
+                    <div class="level-item">
+                        <div class="field has-addons">
+                            <p class="control">
+                                <input class="input" type="text" placeholder="Name" name="name" value="{{query_name}}">
+                            </p>
+                            <p class="control">
+                                <button class="button">
+                                    Search
+                                </button>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Right side -->
+                <div class="level-right">
+                    <div class="level-item">
+                        <p class="subtitle is-5">
+                            <strong>{{ counts }}</strong> entries
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- 各従業員のカード -->
+<section class="section">
+    <div class="container">
+        <div class="columns is-multiline">
+                {% for emp in elist %} <!-- for文でelistで受け取った各従業員についてカードを出力 -->
+            <div class="column is-one-third">
+                <a href="{{url_for('emp_master', id=emp.id)}}">
+                <div class="card">
+                    <!-- カードのイメージ -->
+                    <div class="card-image">
+                        <figure class="image is-1by1">
+                            <!-- static内のファイルアクセスはこのように行う -->
+                            <img src="{{url_for('static', filename='pict/'+emp.pict)}}" alt="Employee" loading="lazy">
+                        </figure>
+                    </div>
+                    <!-- カードの内容 -->
+                    <div class="card-content">
+                        <div class="media">
+                            <div class="media-content">
+                                <!-- 従業員の名前 -->
+                                <p class="title is-4">{{emp.name}}</p>
+                                <!-- マネージャをクリックするとマネージャのページに飛ぶようにする -->
+                                <a href="{{url_for('emp_master', id=emp.manager)}}">
+                                    <p class="subtitle is-6">Manager: {{emp.manager_name}}</p>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="content">
+                            <p><strong>Salary:</strong> {{emp.salary}}</p>
+                            <p><strong>Birth Year:</strong> {{emp.byear}}</p>
+                            <p><strong>Start Year:</strong> {{emp.syear}}</p>
+                        </div>
+                    </div>
+                </div>
+                </a>
+            </div>
+                {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- notificationを自動的に閉じるjavascript -->
+<script>
+    $(".notification").delay(2000).slideUp();
+</script>
+
+{% endblock %}
