@@ -10,24 +10,26 @@ https://www.st.itc.keio.ac.jp/ja/com_ws_home_st.html#linux
 
 setupスクリプトを使用して、仮想環境の構築・サンプルアプリのインストール・ITCサーバーへのデプロイを行います。
 
-1. ITCにRDPで接続するか`ssh ubXXXXXX@remote.educ.cc.keio.ac.jp` にSSHログインする
+1. ITCにRDPで接続するか`ssh ubXXXXXX@remote.educ.cc.keio.ac.jp` にSSHログインする（ITCのPCを使用する場合は不要）
 2. `bash /home/kyozai/dm_flask/setup.sh` を実行
 3. ~/dm_srcディレクトリにソースが展開され、http://user.keio.ac.jp/~ubXXXXXX/dm_app にデプロイされます。
 4. setupスクリプトでは以下のことを設定できます。必要に応じて、setup.shをコピーして書き換えてください。
     - APP_SRC=$HOME/dm_src  ##ソースをインストールするディレクトリ。必ず$HOME内にする
     - APP_NAME=dm_app  ##デプロイ先のURI
+5. サンプルアプリにはログインユーザ情報が登録されていません。最初に適当な名前でサインアップする必要があります。
 
 ## Python仮想環境の有効化
 
-1. `source venv/bin/activate` コマンドで仮想環境を起動します。
+1. `cd ~/dm_src` コマンドで移動します。
+2. `source venv/bin/activate` コマンドで仮想環境を起動します。
     1. ターミナルに(venv)が表示されるようになります。
     2. setup.shを使用した場合、Flaskがすでにインストールされています。
     3. 仮想環境のPythonのバージョンを使用しないとWebサーバー側で動きません！
-2. 仮想環境を終了する場合、`deactivate` を実行します。
+3. 仮想環境を終了する場合、`deactivate` を実行します。
 
 ## テスト環境でのアプリケーション実行
 
-flask runを使用してテスト環境でアプリケーションを実行します。
+`flask run`を使用してテスト環境でアプリケーションを実行します。
 
 ### ローカル環境（ITCのPC or Remote Desktop内）での実行
 
@@ -36,7 +38,7 @@ flask runを使用してテスト環境でアプリケーションを実行し�
 
 ### SSH環境での実行　※TAサポートなし
 
-1. 別のターミナルで、 `ssh -L 5000:127.0.0.1:5000 ubXXXXXX[@remoteX.educ.cc.keio.ac.jp](mailto:aa122242@remote.educ.cc.keio.ac.jp)` を実行します（ubXXX…は自分のITCアカウント、remoteXをログイン中のサーバ名に変更）
+1. 別のターミナルで、 `ssh -L 5000:127.0.0.1:5000 ubXXXXXX@remoteX.educ.cc.keio.ac.jp` を実行します（ubXXX…は自分のITCアカウント、remoteXをログイン中のサーバ名に変更）
 2. appディレクトリで `flask run` を実行します。
 3. Webブラウザで [http://127.0.0.1:5000](http://127.0.0.1:5000/) にアクセスします。
 
@@ -54,7 +56,7 @@ database.dbはサンプルのデータベースが入っています。そのま
 
 ## デプロイの設定
 
-デプロイを止めたい場合、~/public_html/dm_app (URIを変更した場合は~/public_html/$APP_NAME)のディレクトリを削除します。再デプロイする場合、環境構築するときに使用したsetup.shを使用します。
+デプロイを止めたい場合、\~/public_html/dm_app (URIを変更した場合は\~/public_html/$APP_NAME)のディレクトリを削除します。再デプロイする場合、環境構築するときに使用したsetup.shを使用します。
 
 （注：setup.shを実行すると、ディレクトリ$APP_SRC, $APP_SRC/venvがない場合サンプルアプリが再インストールされます。 $APP_SRC/database.dbがない場合サンプルアプリのデータベースが読み込まれます。必要に応じてソースのバックアップをとってください。）
 
