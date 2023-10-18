@@ -112,39 +112,66 @@ def logout():
     return redirect(url_for('home'))
 
 
-@app.route("/employee", methods=["GET", "POST"])
-def employee():
+@app.route("/pirate", methods=["GET", "POST"])
+def pirate():
     if 'user_id' not in session:
         return redirect(url_for('login'))
     conn = get_db()
     cur = conn.cursor()
     # POSTは検索をするとリクエストされる
     if request.method == "POST":
-        elist = cur.execute("SELECT e.*, m.name as manager_name FROM employee e, employee m WHERE m.id = e.manager AND e.name LIKE ? ORDER BY e.id", ('%'+request.form["name"]+'%', )).fetchall()
-        return render_template("employee.html", counts=len(elist), elist=elist, query_name=request.form["name"])
+        elist = cur.execute("SELECT p.*, df.name as devilFruit_name, l.name as location_name FROM person p, pirate pi, devilFruit df, location l WHERE p.name LIKE ? AND p.id = pi.person_id AND df.id = p.devilFruit AND l.id = p.birthplace ORDER BY p.id", ('%'+request.form["name"]+'%', )).fetchall()
+        return render_template("pirate.html", counts=len(elist), elist=elist, query_name=request.form["name"])
     else:
         # GETの場合全件のデータベースルックアップをする。返ってくるテーブルの属性名で属性にアクセスするので、SQLで属性名を適切に設定する
-        elist = cur.execute("SELECT e.*, m.name as manager_name FROM employee e, employee m WHERE m.id = e.manager ORDER BY e.id").fetchall() ## XXX: managerがいないと表示されない。managerがいない人も表示させるにはouter joinする。
-        return render_template("employee.html", counts=len(elist), elist=elist)
+        elist = cur.execute("SELECT p.*, df.name as devilFruit_name, l.name as location_name FROM person p, pirate pi, devilFruit df, location l WHERE p.id = pi.person_id AND df.id = p.devilFruit AND l.id = p.birthplace ORDER BY p.id").fetchall() ## XXX: birthplaceがいないと表示されない。birthplaceがいない人も表示させるにはouter joinする。
+        return render_template("pirate.html", counts=len(elist), elist=elist)
     
+@app.route("/navy", methods=["GET", "POST"])
+def navy():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    conn = get_db()
+    cur = conn.cursor()
+    # POSTは検索をするとリクエストされる
+    if request.method == "POST":
+        elist = cur.execute("SELECT p.*, l.name as location_name, df.name as devilFruit_name FROM person p, navy na, devilFruit df, location l WHERE p.name LIKE ? AND p.id = na.person_id AND df.id = p.devilFruit AND l.id = p.birthplace ORDER BY p.id", ('%'+request.form["name"]+'%', )).fetchall()
+        return render_template("navy.html", counts=len(elist), elist=elist, query_name=request.form["name"])
+    else:
+        # GETの場合全件のデータベースルックアップをする。返ってくるテーブルの属性名で属性にアクセスするので、SQLで属性名を適切に設定する
+        elist = cur.execute("SELECT p.*, l.name as location_name, df.name as devilFruit_name FROM person p, navy na, devilFruit df, location l WHERE p.id = na.person_id AND df.id = p.devilFruit AND l.id = p.birthplace ORDER BY p.id").fetchall() ## XXX: birthplaceがいないと表示されない。birthplaceがいない人も表示させるにはouter joinする。
+        return render_template("navy.html", counts=len(elist), elist=elist)
 
-@app.route("/employee/<id>")
-def emp_master(id):
+@app.route("/pirate/<id>")
+def pirate_master(id):
     # 各従業員（idは従業員番号）の詳細情報
     if 'user_id' not in session:
         return redirect(url_for('login'))
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM employee e WHERE e.id = ?", (id,))
+    cur.execute("SELECT p.*, l.name as location_name, pi.bounty as bounty, pg.name as pg_name, df.name as dname, df.ability as dability FROM person p, pirate pi, pirateGroup pg, devilFruit df, location l WHERE p.id = ? AND pi.person_id = p.id AND pg.id = pi.pirateGroup_id AND p.devilFruit = df.id AND l.id = p.birthplace", (id,))
     emp = cur.fetchone()
     if not emp:
-        flash(f"Error: No employee entry {id}", "error")
-        return redirect(url_for("employee"))
-    return render_template("emp_detail.html", emp=emp)
+        flash(f"Error: No person entry {id}", "error")
+        return redirect(url_for("pirate"))
+    return render_template("pirate_detail.html", emp=emp)
 
+@app.route("/navy/<id>")
+def navy_master(id):
+    # 各従業員（idは従業員番号）の詳細情報
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT p.*, b.name as bname, c.name as cname, l.name as lname, df.name as dname, df.ability as dability FROM person p, navy na, devilFruit df, location l, class c, base b WHERE p.id = ? AND na.person_id = p.id AND p.devilFruit = df.id AND l.id = p.birthplace AND c.id = na.class_id AND b.id = na.base_id", (id,))
+    emp = cur.fetchone()
+    if not emp:
+        flash(f"Error: No person entry {id}", "error")
+        return redirect(url_for("navy"))
+    return render_template("navy_detail.html", emp=emp)
 
 @app.route("/onboard", methods=["GET", "POST"])
-def emp_new():
+def person_new():
     if 'user_id' not in session:
         return redirect(url_for('login'))
     conn = get_db()
@@ -154,26 +181,12 @@ def emp_new():
         return_data = { "form": request.form } # エラーメッセージなどを渡すためレンダラに渡すデータが大きくなる。よって辞書として管理する。
 
         ## idを確認（数値である＆被りがない）
-        entry = cur.execute('SELECT name FROM employee e WHERE e.id = ?', (request.form['id'],)).fetchone()
+        entry = cur.execute('SELECT name FROM person p WHERE p.id = ?', (request.form['id'],)).fetchone()
         if not request.form['id'].isdigit() or entry:
             request_valid = False
             return_data["id_invalid"] = "IDが不正です。"
         else:
             id = int(request.form['id'])
-
-        ## managerを確認
-        manager_entry = cur.execute('SELECT name FROM employee e WHERE e.id = ?', (request.form["manager"],)).fetchone()
-        if  request.form["manager"] != "0" and not manager_entry:
-            request_valid = False
-            return_data["manager_invalid"] = "Manager IDが不正です。"
-
-        ## 名前と誕生年の確認
-        if not (request.form['byear'] and request.form['byear'].isdigit()):
-            request_valid = False
-            return_data['byear_invalid'] = "誕生年を記入してください。"
-        if not request.form['name']:
-            request_valid = False
-            return_data['name_invalid'] = "名前を記入してください。"
 
         ## Fileを確認
         if 'pict' not in request.files:
@@ -192,9 +205,15 @@ def emp_new():
         ## Insertを行う
         if request_valid:
             try:
-                cur.execute('INSERT INTO employee (id,name,salary,manager,byear,syear,pict) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                        [id, request.form['name'], 100, request.form['manager'],
-                        request.form['byear'], datetime.date.today().year, filename])
+                cur.execute('INSERT INTO person (id,name,height,birthplace,devilFruit, words, pict) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                        [id, request.form['name'], request.form['height'], request.form['birthplace'], 0, "", filename])
+                if(request.form['character_type'] ==  'pirate'):
+                    cur.execute('INSERT INTO pirate (id, person_id, pirateGroup_id, bounty) VALUES (?, ?, ?, ?)'
+                    ,[id, id, 0, 0])
+                else:
+                    cur.execute('INSERT INTO navy (id, person_id, class_id, base_id) VALUES (?, ?, ?, ?)'
+                    ,[id, id, 0, 0])
+        
             except sqlite3.Error as e:
                 print('sqlite3.Error occurred:', e.args[0])
                 request_valid = False
@@ -202,38 +221,32 @@ def emp_new():
             conn.commit() ## 更新はcommitが必要
 
         if request_valid:
-            flash("Registered. ID:{} NAME:{}（Manager:{}）".format(id, request.form['name'], manager_entry['name']))
-            return redirect(url_for("employee"))
+            flash("Registered. ID:{} NAME:{}（）".format(id, request.form['name']))
+            return redirect(url_for("pirate"))
         else:
-            return render_template("emp_new.html" ,**return_data)
+            return render_template("person_new.html" ,**return_data)
 
     else:
-        return render_template("emp_new.html", form={})
+        return render_template("person_new.html", form={})
 
 
-@app.route("/employee/<id>/edit", methods=["GET", "POST"])
-def emp_edit(id):
+@app.route("/pirate/<id>/edit", methods=["GET", "POST"])
+def pirate_edit(id):
     if 'user_id' not in session:
         return redirect(url_for('login'))
     conn = get_db()
     cur = conn.cursor()
-    emp = cur.execute('SELECT * FROM employee e WHERE e.id = ?',[id]).fetchone()
+    emp = cur.execute('SELECT p.*, pi.bounty as bounty, pg.name as pg_name, df.name as dname, df.ability as dability FROM person p, pirate pi, pirateGroup pg, devilFruit df WHERE p.id = ? AND pi.person_id = p.id AND pg.id = pi.pirateGroup_id AND p.devilFruit = df.id',[id]).fetchone()
     if not emp:
-        flash(f"Invalid id {id}", "error")
-        return redirect(url_for("employee"))
+        flash(f" Invalid id {id}", "error")
+        return redirect(url_for("pirate"))
 
     if request.method == "GET":
-        return render_template('emp_edit.html', emp=emp)
+        return render_template('pirate_edit.html', emp=emp)
 
     if request.method == "POST":
         request_valid = True
         return_data = { "emp": {**emp, **request.form} }
-
-        ## managerを確認
-        manager_entry =cur.execute('SELECT name FROM employee e WHERE e.id = ?',[request.form["manager"]]).fetchone() 
-        if request.form["manager"] != "0" and not manager_entry:
-            request_valid = False
-            return_data["manager_invalid"] = "Manager IDが不正です。"
 
         ## Fileを確認
         file = request.files["pict"] if 'pict' in request.files else None
@@ -249,8 +262,13 @@ def emp_edit(id):
         ## Insertを行う
         if request_valid:
             try:
-                cur.execute('UPDATE employee SET  name=?, salary=?, manager=? ,pict=? WHERE id=?',
-                        [request.form['name'], request.form['salary'], request.form['manager'],filename,id])
+                cur.execute('UPDATE person SET  name=?, height=?, birthplace=?, words=?, pict=? WHERE id=?',
+                        [request.form['name'], request.form['height'], request.form['birthplace'], request.form['words'], filename,id])
+                cur.execute('UPDATE person SET devilFruit = (SELECT df.id FROM devilFruit df WHERE df.name = ?) WHERE id=? ',
+                        [request.form['dname'], id])
+                cur.execute('UPDATE pirate SET pirateGroup_id = (SELECT pg.id FROM pirateGroup pg WHERE pg.name = ?), bounty=?',
+                        [request.form['pg_name'], request.form['bounty']])
+                
             except sqlite3.Error as e:
                 print('sqlite3.Error occurred:', e.args[0])
                 request_valid = False
@@ -259,41 +277,111 @@ def emp_edit(id):
 
         if request_valid:
             flash(f"Updated {emp['name']} (Id:{id})")
-            return redirect(url_for("employee"))
+            return redirect(url_for("pirate"))
         else:
-            return render_template("emp_edit.html", id=id, **return_data)
+            return render_template("pirate_edit.html", id=id, **return_data)
 
 
-@app.route("/employee/<id>/delete", methods=["GET", "POST"])
-def emp_delete(id):
+@app.route("/navy/<id>/edit", methods=["GET", "POST"])
+def navy_edit(id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    conn = get_db()
+    cur = conn.cursor()
+    emp = cur.execute("SELECT p.*, b.name as bname, c.name as cname, l.name as lname, df.name as dname, df.ability as dability FROM person p, navy na, devilFruit df, location l, class c, base b WHERE p.id = ? AND na.person_id = p.id AND p.devilFruit = df.id AND l.id = p.birthplace AND c.id = na.class_id AND b.id = na.base_id", (id,)).fetchone()
+
+    if not emp:
+        flash(f"Invalid id {id}", "error")
+        return redirect(url_for("navy"))
+
+    if request.method == "GET":
+        return render_template('navy_edit.html', emp=emp)
+
+    if request.method == "POST":
+        request_valid = True
+        return_data = { "emp": {**emp, **request.form} }
+
+        ## Fileを確認
+        file = request.files["pict"] if 'pict' in request.files else None
+        if not file:
+            filename = emp["pict"]
+        elif not file.filename.endswith(('jpg', 'jpeg', 'png')):
+            request_valid = False
+            return_data["pict_invalid"] = "画像の拡張子が不正です。"
+        elif request_valid:
+            filename = str(id) + os.path.splitext(file.filename)[1]
+            file.save(os.path.join('./static/pict', filename))
+
+        ## Insertを行う
+        if request_valid:
+            try:
+                cur.execute('UPDATE person SET  name=?, height=?, birthplace=?, words=?, pict=? WHERE id=?',
+                        [request.form['name'], request.form['height'], request.form['birthplace'], request.form['words'], filename,id])
+                cur.execute('UPDATE person SET devilFruit = (SELECT df.id FROM devilFruit df WHERE df.name = ?) WHERE id=? ',
+                        [request.form['dname'], id])
+                
+            except sqlite3.Error as e:
+                print('sqlite3.Error occurred:', e.args[0])
+                request_valid = False
+                return_data['db_error'] = True
+            conn.commit() ## 更新はcommitが必要
+
+        if request_valid:
+            flash(f"Updated {emp['name']} (Id:{id})")
+            return redirect(url_for("navy"))
+        else:
+            return render_template("navy_edit.html", id=id, **return_data)
+
+
+@app.route("/pirate/<id>/delete", methods=["GET", "POST"])
+def pirate_delete(id):
     if 'user_id' not in session:
         return redirect(url_for('login'))
     if request.method == "GET":
-        return emp_master(id)
+        return pirate_master(id)
 
     conn = get_db()
     cur = conn.cursor()
     request_valid = True
 
-    ## マネージャかどうか確認
-    is_manager = cur.execute('SELECT e.name FROM employee e WHERE e.manager = ?', (id,)).fetchone()
-    if not is_manager:
-        emp = cur.execute('SELECT name FROM employee e WHERE e.id = ?',(id,)).fetchone()
-        ## Deleteを行う
-        try:
-            cur.execute('DELETE FROM employee WHERE id = ?',(id,))
-        except sqlite3.Error as e:
-            print('sqlite3.Error occurred:', e.args[0])
-            request_valid = False
-        if request_valid:
-            conn.commit()
-            flash(f"Deleted {emp['name']} (ID:{id})")
-            return redirect(url_for("employee"))
-        else:
-            return redirect(url_for("emp_master", id=id))
+    emp = cur.execute('SELECT name FROM person e WHERE e.id = ?',(id,)).fetchone()
+    ## Deleteを行う
+    try:
+        cur.execute('DELETE FROM person WHERE id = ?',(id,))
+    except sqlite3.Error as e:
+        print('sqlite3.Error occurred:', e.args[0])
+        request_valid = False
+    if request_valid:
+        conn.commit()
+        flash(f"Deleted {emp['name']} (ID:{id})")
+        return redirect(url_for("pirate"))
     else:
-        flash('Managerとして登録されています', "error")
-        return redirect(url_for('emp_master', id=id))
+        return redirect(url_for("pirate_master", id=id))
+
+@app.route("/navy/<id>/delete", methods=["GET", "POST"])
+def navy_delete(id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    if request.method == "GET":
+        return navy_master(id)
+
+    conn = get_db()
+    cur = conn.cursor()
+    request_valid = True
+
+    emp = cur.execute('SELECT name FROM person e WHERE e.id = ?',(id,)).fetchone()
+    ## Deleteを行う
+    try:
+        cur.execute('DELETE FROM person WHERE id = ?',(id,))
+    except sqlite3.Error as e:
+        print('sqlite3.Error occurred:', e.args[0])
+        request_valid = False
+    if request_valid:
+        conn.commit()
+        flash(f"Deleted {emp['name']} (ID:{id})")
+        return redirect(url_for("navy"))
+    else:
+        return redirect(url_for("navy_master", id=id))
 
 # pythonを直接実行したときでもflask run --debugと同じ挙動となるようにする
 if __name__ == '__main__':

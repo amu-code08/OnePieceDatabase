@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+<!-- flashメッセージを表示させる -->
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div id="announce" class="notification is-danger">
+            <button class="delete"></button>
+            <ul>
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+{% endwith %}
+
+<section class="hero is-fullheight is-default is-bold">
+    <div class="hero-body">
+        <div class="container has-text-centered">
+            <div class="columns is-vcentered">
+                <div class="column is-5">
+                    <figure class="image is-1by1">
+                        <img src="{{url_for('static', filename='pict/'+emp.pict)}}" alt="Description">
+                    </figure>
+                </div>
+                <div class="column is-6 is-offset-1">
+                    <h1 class="title is-2">
+                        {{emp.name}}
+                    </h1>
+                    <br>
+                      <div class="content">
+                        <p><strong>懸賞金:</strong> {{emp.bounty}}ベリー</p>
+                        <p><strong>海賊団:</strong> {{emp.pg_name}}</p>
+                        <p><strong>身長:</strong> {{emp.height}}cm</p>
+                        <p><strong>出身:</strong> {{emp.location_name}}</p>
+                        <p><strong>悪魔の実:</strong> 「{{emp.dname}}」  {{emp.dability}} </p>
+                        <h2><strong></strong> 「{{emp.words}}」</h2>
+                      </div>
+                </div>
+            </div>
+            <div class="buttons">
+                <div class="columns is-vcentered">
+                    <div class="column">
+                            <a href="{{ url_for( 'pirate' ) }}" class="button is-link is-light">Back</a>
+                    </div>
+                    <div class="column">
+                            <a href="{{ url_for( 'pirate_edit', id=emp.id) }}" class="button is-link is-light">Edit</a>
+                    </div>
+                    <div class="column">
+                            <a href="{{ url_for( 'pirate_delete' , id=emp.id) }}" class="button is-danger is-light">Delete</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- /employee/<id>/delete へのGETでもこのページが表示される。その場合、モーダルを表示する。 -->
+    {% if request.url.endswith("delete") %}
+    <div class="modal is-active">
+        <div class="modal-background"></div>
+            <div class="modal-card">
+              <header class="modal-card-head">
+                <p class="modal-card-title">Caution!</p>
+                <a class="delete" aria-label="close" href="{{ url_for( 'pirate_master', id=emp.id) }}"></a>
+              </header>
+              <section class="modal-card-body">
+                Are you really sure you want to remove {{emp.name}}?
+              </section>
+              <footer class="modal-card-foot">
+                <form action="{{url_for('pirate_delete',id=emp.id)}}" method="POST" enctype="multipart/form-data">
+                    <!-- DeleteをクリックするとPOSTされる -->
+                    <button class="button is-danger" type="submit" name="submit_button" >Delete</button>
+                    <!-- Cancelは元のページに戻る -->
+                    <a class="button" href="{{ url_for( 'pirate_master', id=emp.id) }}">Cancel</a>
+                </form>
+              </footer>
+        </div>
+    </div>
+    {% endif %}
+
+</section>
+<script>
+    $("#announce").delay(2000).slideUp();
+</script>
+{% endblock %}

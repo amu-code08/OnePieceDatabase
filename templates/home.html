@@ -19,12 +19,12 @@
     <div class="container is-max-desktop">
     <article class="message">
         <div class="message-header">
-        <p>Data Modeling Sample Web App</p>
+        <p>OnePiece図鑑</p>
         <!-- <button class="delete" aria-label="delete"></button> -->
         </div>
         <div class="message-body">
             {% if session['user_id'] %}
-            Hello, {{username}}!
+            こんにちは、 {{username}}!
             {% else %}
             This is <strong>Data Modeling</strong> sample web application. Click Login to start.
             {% endif %}
@@ -36,40 +36,163 @@
     <section class="section">
         <div class="container">
             <h1 class="title">
-                レポートの書き方について
+                レポート
             </h1>
-            <div class="content">
-                レポートは以下の事項を含め、Webアプリ上のわかりやすい場所にHTMLで記述すること。
-            </div>
-
             <p class="title is-5">
                 第3課題からの変更点
             </p>
             <div class="content">
-                第3課題からスキーマやビューなどに変更を加えた場合、それがわかるように記述。
+                今回新しいエンティティを追加することなどはなかったが、悪魔の実の名前と能力を正規化し分けていたところを一つの表にまとめた。
+                これは悪魔の実の能力が変わることはないことと、その情報をアクセスするときにひとつの表に入っていたほうが便利であることを理由に行った。
+                ほかの変更点はなかった。
+            </div>
+
+            <p class="title is-5">
+                データベースの対象名
+            </p> 
+            <div class="content">
+                データベースはワンピースのキャラクターについての情報がまとめてある。具体的にはキャラクターの名前や出身、身長、食べた悪魔の実やその能力、有名なセリフ、海賊であれば所属している海賊団や懸賞金、海軍であれば所属している基地や階級などを入力してある。
             </div>
 
             <p class="title is-5">
                 Webアプリの概要
             </p>
             <div class="content">
-                設計したWebアプリに関する簡単な説明。
+            このWebアプリではログインとデータの一覧、詳細閲覧、検索、追加、編集、削除ができる。また海賊と海軍で表示する情報が異なるため、ナビゲーションバーで海賊と海軍をそれぞれ表示するページへ飛べるようになっている。一覧ページから好きなキャラクターを選びクリックするとそのキャラクターの所属や悪魔の実の能力、セリフなどが確認できる。情報が間違っていた場合やセリフを変更したい場合は編集でき、キャラクター情報がデータベースにない場合は追加することもできる。
             </div>
 
             <p class="title is-5">
                 Webアプリのエンドポイント、使用したSQL文、及び実装上の工夫
             </p>
+            <p>このWebアプリは大部分をdm_srcのデモアプリから流用した。そのため多くのエンドポイントはデモアプリと似たような役割を持っている。</p>
             <div class="content">
-                Webアプリの各エンドポイントに対し、その画面が何をするものなのか説明し、関連するSQLクエリを記述する。
-                必要に応じて、MVTモデルに則った、Webアプリ、データベース、テンプレートの各画面での役割について説明する。
-                また、Webアプリやデータベース接続のセキュリティ向上のための工夫、フォームバリデーションやユーザインターフェイスに関する工夫があれば併せて報告する。
+                <p><strong>/</strong></p>
+                <p>使用したSQL文：cur.execute('SELECT * FROM LoginUser WHERE username = ?', (session['user_id'],))</p>
+                <p>ホーム画面であり、ナビゲーションバーとレポートについて記した文が書いてある。ナビゲーションバーのボタンでそれぞれ行きたいページに行くことができる。
+                    ログイン後の場合は上記のSQL文でuser_idからuser名を取得してタイトルの下に表示する。
+                </p>
+            </div>
+
+            <div class="content">
+                <p><strong>/login</strong></p>
+                <p>使用したSQL文：cur.execute('SELECT * FROM LoginUser WHERE username = ? AND password = ?', (username, h.hexdigest()))</p>
+                <p>Login画面であり、Login, Sign Up, logoutボタンがついており、それぞれ名前通りの機能がついている。
+                    上記のSQL文でusernameとpasswordが一致するユーザがいればログインを成功させる。
+                    Sign Up後は登録した情報でLoginできるようになる。Login後はアプリの使いたい機能が自由に使えるようになる。</p>
+            </div>
+
+            
+            <div class="content">
+                <p><strong>/signup</strong></p>
+                <p>使用したSQL文：cur.execute('SELECT * FROM LoginUser WHERE username = ?',(username,)) , cur.execute('INSERT INTO LoginUser (username, password) VALUES (?, ?)', (username, h.hexdigest()))</p>
+                <p>Login画面からSign Upボタンを押すと開かれるページであり、User nameとPassword,確認のためにもう一度Passwordを入力する項目がある。Passwordが一致しないと登録できないようになっている。Sign Upに成功したら登録した情報でログインすることができる。
+                    一つ目のSQL文はusernameが一致するものがすでに登録されているかを確認するために使われ、すでに同一のusernameが登録されている場合にはSign Up後は登録した情報でLoginできるようになる。Login後はアプリの使いたい機能が自由に使えるようになる。
+                    二つ目のSQL文はSign Upが成功した時に新たなログイン情報をデータベースに記録するためのものである。
+                </p>
+            </div>
+
+            <div class="content">
+                <p><strong>/logout</strong></p>
+                <p>使用したSQL文：なし</p>
+                <p>Login画面からLogoutボタンを押すとアクセスされ、Logged outというメッセージとともにhome画面へと転送するエンドポイントである。
+                    また登録されているuser_id（現在ログイン中のユーザのid）をNoneに設定する。
+                </p>
+            </div>
+
+            <div class="content">
+                <p><strong>/pirate</strong></p>
+                <p>使用したSQL文：cur.execute("SELECT p.*, df.name as devilFruit_name, l.name as location_name FROM person p, pirate pi, devilFruit df, location l WHERE p.name LIKE ? AND p.id = pi.person_id AND df.id = p.devilFruit AND l.id = p.birthplace ORDER BY p.id", ('%'+request.form["name"]+'%', ))</p>
+                <p>        cur.execute("SELECT p.*, df.name as devilFruit_name, l.name as location_name FROM person p, pirate pi, devilFruit df, location l WHERE p.id = pi.person_id AND df.id = p.devilFruit AND l.id = p.birthplace ORDER BY p.id").fetchall() ## XXX: birthplaceがいないと表示されない。birthplaceがいない人も表示させるにはouter joinする。</p>
+                <p>海賊の情報一覧・検索した情報を表示する画面である。ナビゲーションバーの「Pirate」ボタンからアクセスできる。使用した一つ目のSQL文は検索した名前に似た海賊だけを探し、二つ目のSQL文はすべての海賊を探すコードである。またこれらの海賊について、personの持つname, height, birthplace, devilFruitなどの情報をほかのエンティティを参照しながらpirate.htmlに受け渡す。
+                    pirate.htmlでは検索・一覧にかかわらず、受け渡された海賊についての情報を表示する。</p>
+            </div>
+            
+            <div class="content">
+                <p><strong>/logout</strong></p>
+                <p>使用したSQL文：cur.execute("SELECT p.*, l.name as location_name, df.name as devilFruit_name FROM person p, navy na, devilFruit df, location l WHERE p.name LIKE ? AND p.id = na.person_id AND df.id = p.devilFruit AND l.id = p.birthplace ORDER BY p.id", ('%'+request.form["name"]+'%', ))</p>
+                <p>  cur.execute("SELECT p.*, l.name as location_name, df.name as devilFruit_name FROM person p, navy na, devilFruit df, location l WHERE p.id = na.person_id AND df.id = p.devilFruit AND l.id = p.birthplace ORDER BY p.id").fetchall() ## XXX: birthplaceがいないと表示されない。birthplaceがいない人も表示させるにはouter joinする。</p>
+                <p>海兵の情報一覧・検索した情報を表示する画面である。ナビゲーションバーの「Navy」ボタンからアクセスできる。使用した一つ目のSQL文は検索した名前に似た海兵だけを探し、二つ目のSQL文はすべての海兵を探すコードである。またこれらの海兵について、personの持つname, height, birthplace, devilFruitなどの情報をほかのエンティティを参照しながらnavy.htmlに受け渡す。
+                    navy.htmlでは検索・一覧にかかわらず、受け渡された海兵についての情報を表示する。</p>
+            </div>
+
+            <div class="content">
+                <p><strong>/pirate/&lt;id&gt;</strong></p>
+                <p>使用したSQL文：cur.execute("SELECT p.*, l.name as location_name, pi.bounty as bounty, pg.name as pg_name, df.name as dname, df.ability as dability FROM person p, pirate pi, pirateGroup pg, devilFruit df, location l WHERE p.id = ? AND pi.person_id = p.id AND pg.id = pi.pirateGroup_id AND p.devilFruit = df.id AND l.id = p.birthplace", (id,))</p>
+                <p>海賊の写真をクリックしたときにその詳細な情報を表示するための画面である。具体的には写真、名前、懸賞金、海賊団、身長、出身、悪魔の実、名言を表示する。
+                    これらの情報は上記のSQL文で取得してきたものである。これはpirate_detail.htmlで管理されていて、ほかにもBack, Edit, Deleteの三つのボタンがあり以下で説明していくが、その名前通りの機能を持つ。
+                </p>
+            </div>
+
+            
+            <div class="content">
+                <p><strong>/navy/&lt;id&gt;</strong></p>
+                <p>使用したSQL文：cur.execute("SELECT p.*, b.name as bname, c.name as cname, l.name as lname, df.name as dname, df.ability as dability FROM person p, navy na, devilFruit df, location l, class c, base b WHERE p.id = ? AND na.person_id = p.id AND p.devilFruit = df.id AND l.id = p.birthplace AND c.id = na.class_id AND b.id = na.base_id", (id,))
+                </p>
+                <p>海兵の写真をクリックしたときにその詳細な情報を表示するための画面である。具体的には写真、名前、身長、出身、悪魔の実、階級、所属基地、名言を表示する。
+                    これらの情報は上記のSQL文で取得してきたものである。これはnavy_detail.htmlで管理されていて、ほかにもBack, Edit, Deleteの三つのボタンがあり以下で説明していくが、その名前通りの機能を持つ。
+                </p>
+            </div>
+
+            <div class="content">
+                <p><strong>/pirate/&lt;id&gt;/edit</strong></p>
+                <p>使用したSQL文： cur.execute('SELECT p.*, pi.bounty as bounty, pg.name as pg_name, df.name as dname, df.ability as dability FROM person p, pirate pi, pirateGroup pg, devilFruit df WHERE p.id = ? AND pi.person_id = p.id AND pg.id = pi.pirateGroup_id AND p.devilFruit = df.id',[id])</p>
+                <p>cur.execute('UPDATE person SET  name=?, height=?, birthplace=?, words=?, pict=? WHERE id=?',[request.form['name'], request.form['height'], request.form['birthplace'], request.form['words'], filename,id])</p>
+                <p>cur.execute('UPDATE person SET devilFruit = (SELECT df.id FROM devilFruit df WHERE df.name = ?) WHERE id=? ',[request.form['dname'], id])</p>     
+                <p> cur.execute('UPDATE pirate SET pirateGroup_id = (SELECT pg.id FROM pirateGroup pg WHERE pg.name = ?), bounty=?',[request.form['pg_name'], request.form['bounty']])</p>
+                <p>海賊の詳細を表示するページのEditボタンから開けるページでありここでは海賊の情報の編集を行える。これはpirate_edit.htmlで管理されている。一つ目のSQL文は、編集を行うときの入力欄にplaceholderとして現在の情報を入れておくために必要な情報を集めている。
+                    2，3，4こ目のSQL文はすべて必要な情報をUPDATEするためのコードで、それぞれ必要なEntityを参照しながら選ばれた項目のIDなどをpersonやpirateなどに入力して値を更新している。</p>
+            </div>
+
+            <div class="content">
+                <p><strong>/navy/&lt;id&gt;/edit</strong></p>
+                <p>使用したSQL文： cur.execute("SELECT p.*, b.name as bname, c.name as cname, l.name as lname, df.name as dname, df.ability as dability FROM person p, navy na, devilFruit df, location l, class c, base b WHERE p.id = ? AND na.person_id = p.id AND p.devilFruit = df.id AND l.id = p.birthplace AND c.id = na.class_id AND b.id = na.base_id", (id,))</p>
+                <p>cur.execute('UPDATE person SET  name=?, height=?, birthplace=?, words=?, pict=? WHERE id=?',                        [request.form['name'], request.form['height'], request.form['birthplace'], request.form['words'], filename,id])</p>
+                <p>cur.execute('UPDATE person SET  name=?, height=?, birthplace=?, words=?, pict=? WHERE id=?',
+                    [request.form['name'], request.form['height'], request.form['birthplace'], request.form['words'], filename,id])</p>     
+                <p>cur.execute('UPDATE person SET devilFruit = (SELECT df.id FROM devilFruit df WHERE df.name = ?) WHERE id=? ',[request.form['dname'], id])</p>
+
+                <p>海兵の詳細を表示するページのEditボタンから開けるページでありここでは海兵の情報の編集を行える。これはnavy_edit.htmlで管理されている。一つ目のSQL文は、編集を行うときの入力欄にplaceholderとして現在の情報を入れておくために必要な情報を集めている。
+                    2，3，4こ目のSQL文はすべて必要な情報をUPDATEするためのコードで、それぞれ必要なEntityを参照しながら選ばれた項目のIDなどをpersonやnavyなどに入力して値を更新している。</p>
+            </div>
+
+            <div class="content">
+                <p><strong>/onboard</strong></p>
+                <p>使用したSQL文：cur.execute('SELECT name FROM person p WHERE p.id = ?', (request.form['id'],))</p>
+                <p>cur.execute('INSERT INTO person (id,name,height,birthplace,devilFruit, words, pict) VALUES (?, ?, ?, ?, ?, ?, ?)', [id, request.form['name'], request.form['height'], request.form['birthplace'], 0, "", filename])</p>
+                <p>cur.execute('INSERT INTO pirate (id, person_id, pirateGroup_id, bounty) VALUES (?, ?, ?, ?)', [id, id, 0, 0])</p>
+                <p>cur.execute('INSERT INTO navy (id, person_id, class_id, base_id) VALUES (?, ?, ?, ?)', [id, id, 0, 0])</p>
+
+                <p>これは新しくキャラクターを設定する画面である。person_new.htmlで入力された情報に対して、SQLの一文目ではIDが被っているキャラクターがないかを確認する。
+                    これが被らなかったら追加することができ、2文目のSQL文ですべてのキャラクターが持つpersonの情報を入力する。
+                    最後に海賊か海兵かに合わせて3か4番目のSQL文を実行する。
+                </p>
+            </div>
+
+            <div class="content">
+                <p><strong>/pirate/&lt;id&gt;/delete</strong></p>
+                <p>使用したSQL文：cur.execute('DELETE FROM person WHERE id = ?',(id,))
+                </p>
+                <p>海賊の詳細表示についているDeleteボタンを押すとアクセスされるエンドポイントである。ここでは上記のSQL文を使ってpersonを削除する。
+                </p>
+            </div>
+
+            <div class="content">
+                <p><strong>/navy/&lt;id&gt;/delete</strong></p>
+                <p>使用したSQL文：cur.execute('DELETE FROM person WHERE id = ?',(id,))
+                </p>
+                <p>海兵の詳細表示についているDeleteボタンを押すとアクセスされるエンドポイントである。ここでは上記のSQL文を使ってpersonを削除する。
+                </p>
             </div>
 
             <p class="title is-5">
-                考察・感想
+                <strong>考察・感想</strong>
             </p>
             <div class="content">
-                この授業及び課題に関する考察及び感想を記入する。
+                データベースを扱うのは二回目だったが初めてのときは何がなんだかわかっていなかったので、今回の実装でしっかり身に着けることができたと思う。またデモアプリの動作を理解することでどうやってWebアプリを設計するのかわかった。
+                データベースへの情報の入力が非常に手間のかかる作業であることもわかった。上でも記したが、もともとデザインしたスキーマはあまり変えなかったが、一部分だけ正規化しておくよりもまとめてしまうほうが効率が良いと思ったので表を一つにまとめた。
+                確かに正規化も大切だが、必要に応じてこういった変更を行うことは状況によっては正しいのだと感じた。
+                今回データベースの設計で人のentityを消したときにそれに付属する海兵や海軍のentityが残ってしまうことがあった。
+                これはなんの支障もきたさないが効率的とは言えない設計になった。このような点を改善していけたらより良いものができると思った。
             </div>
         </div>
     </section>

@@ -1,0 +1,160 @@
+{% extends "layout.html" %}
+
+{% block body %}
+<section class="hero is-fullheight">
+    <div class="hero-body">
+        <div class="container has-text-centered">
+            <div class="columns is-8 is-variable ">
+                <div class="column is-half has-text-left">
+                    <figure class="image is-1by1">
+                        <img src="{{url_for('static', filename='pict/'+emp.pict)}}" alt="Description">
+                    </figure>
+                </div>
+                <div class="column is-half has-text-left">
+                    <form action="{{url_for('navy_edit' ,id=emp.id)}}" method="POST" enctype="multipart/form-data">
+                        <div class="field">
+                            <label class="label">ID</label>
+                            <div class="control">
+                                <!-- 変更できないようにする（disableではダメ） -->
+                                <input class="input is-static" type="number" value="{{emp.id}}" name="id" readonly>
+                            </div>
+                            {% if id_invalid %}
+                            <p class="help is-danger">{{id_invalid}}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="field">
+                            <label class="label">名前</label>
+                            <div class="control">
+                                <input class="input" type="text" name="name" value="{{emp.name}}">
+                            </div>
+                            {% if name_invalid %}
+                            <p class="help is-danger">{{name_invalid}}</p>
+                            {% endif %}
+                        </div>
+
+                        
+                        <div class="field">
+                            <label class="label">身長</label>
+
+                            <div class="control">
+                                <input class="input" type="text"  name="height" value="{{emp.height}}">
+                            </div>
+                        </div>
+
+
+                        <!-- 出身も選ぶ系にする -->
+                        <div class="field">
+                            <label class="label">出身</label>
+                            <div class="control">
+                                <select class="input" type="number"  name="birthplace" value="{{emp.birthplace}}">
+                                    <option value="1">ノースブルー</option>
+                                    <option value="2">サウスブルー</option>
+                                    <option value="3">イーストブルー</option>
+                                    <option value="4">ウェストブルー</option>
+                                    <option value="5">マリージョア</option>
+                                    <option value="6">グランドライン</option>
+                                    <option value="0">不明</option>
+                                </select>
+
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">悪魔の実</label>
+                            <div class="control">
+                                <input class="input" type="text"  name="dname" value="{{emp.dname}}">
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">階級</label>
+                            <div class="control">
+                                <select class="input" type="number"  name="class" value="{{emp.cname}}">
+                                    <option value="1">元帥</option>
+                                    <option value="2">大将</option>
+                                    <option value="3">中将</option>
+                                    <option value="4">少将</option>
+                                    <option value="5">准将</option>
+                                    <option value="6">大佐</option>
+                                    <option value="7">中佐</option>
+                                    <option value="7">少佐</option>
+                                    <option value="0">不明</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">基地局</label>
+                            <div class="control">
+                                <select class="input" type="number"  name="class" value="{{emp.cname}}">
+                                    <option value="1">G5</option>
+                                    <option value="2">マリンフォード</option>
+                                    <option value="3">SWORD</option>
+                                    <option value="4">第16支部</option>
+                                    <option value="5">第153支部</option>
+                                    <option value="6">本部</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">名言</label>
+                            <div class="control">
+                                <input class="input" type="text"  name="words" value="{{emp.words}}">
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Picture</label>
+                            <div id="file-js" class="file has-name ">
+                                <label class="file-label">
+                                    {% if return_data is none %}
+                                    <input class="file-input" type="file" accept="image/*" name="pict" value="{{url_for('static', filename='pict/'+emp.pict)}}">
+                                    {% endif%}
+                                    <span class="file-cta">
+                                        <span class="file-icon">
+                                            <i class="fas fa-upload"></i>
+                                        </span>
+                                        <span class="file-label">
+                                            Choose a file…
+                                        </span>
+                                    </span>
+                                    <span class="file-name">
+                                        No file uploaded
+                                    </span>
+                                </label>
+                            </div>
+                            {% if pict_invalid %}
+                            <p class="help is-danger">{{pict_invalid}}</p>
+                            {% endif %} 
+                        </div>
+
+                        <br>
+                        <div class="field is-grouped">
+                            <div class="control">
+                                <button class="button is-link" type="submit" name="submit_button" value="submit">Save</button>
+                            </div>
+                            <div class="control">
+                                <a href="{{ url_for( 'navy_master', id=emp.id) }}" class="button is-link is-light">Back</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ファイルが選択されたらファイル名を表示するjavascript -->
+<script>
+    const fileInput = document.querySelector('#file-js input[type=file]');
+    fileInput.onchange = () => {
+        if (fileInput.files.length > 0) {
+            const fileName = document.querySelector('#file-js .file-name');
+            fileName.textContent = fileInput.files[0].name;
+        }
+    }
+</script>
+
+{% endblock %}
