@@ -144,7 +144,6 @@ def navy():
 
 @app.route("/pirate/<id>")
 def pirate_master(id):
-    # 各従業員（idは従業員番号）の詳細情報
     if 'user_id' not in session:
         return redirect(url_for('login'))
     conn = get_db()
@@ -158,7 +157,6 @@ def pirate_master(id):
 
 @app.route("/navy/<id>")
 def navy_master(id):
-    # 各従業員（idは従業員番号）の詳細情報
     if 'user_id' not in session:
         return redirect(url_for('login'))
     conn = get_db()
